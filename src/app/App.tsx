@@ -243,6 +243,8 @@ export default function App() {
         element={
           isAuthenticated ? (
             <Navigate to="/dashboard" replace />
+          ) : !localStorage.getItem('resetEmail') ? (
+            <Navigate to="/forget-password" replace />
           ) : localStorage.getItem('resetFlowStep') === 'otp-sent' ? (
             <VerifyOTPPage onNext={handleVerifyOTP} onBack={() => navigate("/forget-password")} />
           ) : localStorage.getItem('resetFlowStep') === 'otp-verified' ? (
