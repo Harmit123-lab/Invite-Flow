@@ -1,8 +1,5 @@
-# TODO: Secure Confidential Pages
-
-- [x] Add resetFlowStep state to App.tsx
-- [ ] Update handleForgetPassword to set resetFlowStep to 'otp-sent'
-- [ ] Update handleVerifyOTP to set resetFlowStep to 'otp-verified'
-- [ ] Update handleResetPassword to reset resetFlowStep to 'none'
-- [ ] Modify /verify-otp route to check resetFlowStep === 'otp-sent'
-- [ ] Modify /reset-password route to check resetFlowStep === 'otp-verified'
+- [x] Analyze the password reset flow and identify the issue with back navigation after successful reset.
+- [x] Read relevant files: App.tsx, ResetPasswordPage.tsx, ForgetPasswordPage.tsx, VerifyOTPPage.tsx.
+- [x] Create a plan to modify route guards in App.tsx to redirect invalid accesses to /login instead of /forget-password.
+- [x] Edit App.tsx to change redirects in /verify-otp and /reset-password route guards.
+- [x] Verify the changes are minimal and only affect reset-flow handling.

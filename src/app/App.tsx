@@ -244,13 +244,13 @@ export default function App() {
           isAuthenticated ? (
             <Navigate to="/dashboard" replace />
           ) : !localStorage.getItem('resetEmail') ? (
-            <Navigate to="/forget-password" replace />
+            <Navigate to="/login" replace />
           ) : localStorage.getItem('resetFlowStep') === 'otp-sent' ? (
             <VerifyOTPPage onNext={handleVerifyOTP} onBack={() => navigate("/forget-password")} />
           ) : localStorage.getItem('resetFlowStep') === 'otp-verified' ? (
             <Navigate to="/reset-password" replace />
           ) : (
-            <Navigate to="/forget-password" replace />
+            <Navigate to="/login" replace />
           )
         }
       />
@@ -263,7 +263,7 @@ export default function App() {
             Boolean(localStorage.getItem('resetEmail')) ? (
             <ResetPasswordPage onNext={handleResetPassword} onBack={() => navigate("/verify-otp")} />
           ) : (
-            <Navigate to="/forget-password" replace />
+            <Navigate to="/login" replace />
           )
         }
       />
