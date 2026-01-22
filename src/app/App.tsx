@@ -125,6 +125,7 @@ export default function App() {
 
       if (response.ok) {
         sessionStorage.removeItem('otpVerified');
+        sessionStorage.setItem('otpFlowStarted', 'true');
         // Store email in localStorage for OTP verification
         localStorage.setItem('resetEmail', email);
         setResetEmail(email);
@@ -229,7 +230,7 @@ export default function App() {
         element={
           isAuthenticated ? (
             <Navigate to="/dashboard" replace />
-          ) : resetFlowStep === 'otp-sent' ? (
+          ) : sessionStorage.getItem('otpFlowStarted') === 'true' && resetFlowStep === 'otp-sent' ? (
             <VerifyOTPPage onNext={handleVerifyOTP} onBack={() => navigate("/forget-password")} />
           ) : resetFlowStep === 'otp-verified' ? (
             <Navigate to="/reset-password" replace />

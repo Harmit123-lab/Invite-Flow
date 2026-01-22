@@ -41,7 +41,7 @@ export function ForgetPasswordPage({ onNext, onBack }: ForgetPasswordPageProps) 
     setTimeout(() => {
       onNext(email);
       setIsLoading(false);
-    }, 500); // 0.5 second delay
+    }, 1000); // 1 second delay
   };
 
   return (
