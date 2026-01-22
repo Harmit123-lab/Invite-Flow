@@ -1,7 +1,11 @@
-- [x] Analyze the password reset flow and identify the issue with back navigation after successful reset.
-- [x] Read relevant files: App.tsx, ResetPasswordPage.tsx, ForgetPasswordPage.tsx, VerifyOTPPage.tsx.
-- [x] Create a plan to modify route guards in App.tsx to redirect invalid accesses to /login instead of /forget-password.
-- [x] Edit App.tsx to change redirects in /verify-otp and /reset-password route guards.
-- [x] Identify that multiple back navigations occur due to history stack not being cleared.
-- [x] Change handleResetPassword to use window.location.replace('/login') to clear history stack.
-- [x] Verify the changes are minimal and only affect reset-flow handling.
+# TODO: Add Eye Icon to Password Fields
+
+## Completed Tasks
+- [x] Created PasswordInput component with eye icon toggle
+- [x] Updated LoginPage.tsx to use PasswordInput for password field
+- [x] Updated Signuppage.tsx to use PasswordInput for password and confirmPassword fields
+- [x] Updated ResetPasswordPage.tsx to use PasswordInput for password and confirmPassword fields
+- [x] Verified ForgetPasswordPage.tsx has no password fields
+
+## Summary
+All password input fields across the application now have an eye icon that toggles password visibility. The default state is hidden, and clicking the eye icon shows/hides the password. The UI remains minimal and consistent with the existing design.
