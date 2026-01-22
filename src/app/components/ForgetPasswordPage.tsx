@@ -9,6 +9,7 @@ import {
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Button } from "@/app/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 interface ForgetPasswordPageProps {
   onNext: (email: string) => void;
@@ -18,6 +19,7 @@ interface ForgetPasswordPageProps {
 export function ForgetPasswordPage({ onNext, onBack }: ForgetPasswordPageProps) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +35,13 @@ export function ForgetPasswordPage({ onNext, onBack }: ForgetPasswordPageProps) 
       return;
     }
 
-    onNext(email);
+    setIsLoading(true);
+
+    // Simulate delay for sending verification code
+    setTimeout(() => {
+      onNext(email);
+      setIsLoading(false);
+    }, 2000); // 2 second delay
   };
 
   return (
@@ -69,8 +77,15 @@ export function ForgetPasswordPage({ onNext, onBack }: ForgetPasswordPageProps) 
               <p className="text-sm text-red-600 text-center">{error}</p>
             )}
 
-            <Button type="submit" className="w-full" size="lg">
-              Send Verification Code
+            <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                "Send Verification Code"
+              )}
             </Button>
 
             <div className="text-center">
