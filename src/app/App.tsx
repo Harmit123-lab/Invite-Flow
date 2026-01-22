@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, useNavigate, Navigate, useLocation, useNavigationType } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import { SignupPage } from "@/app/components/Signuppage";
 import { LandingPage } from "@/app/components/LandingPage";
@@ -53,8 +53,6 @@ interface ProjectData {
 
 export default function App() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const navigationType = useNavigationType();
   const { isAuthenticated, user, login, logout, loading } = useAuth();
   const [projectData, setProjectData] = useState<ProjectData>({
     names: [],
@@ -220,19 +218,6 @@ export default function App() {
     return <div>Loading...</div>; // Or a proper loading component
   }
 
-  useEffect(() => {
-    // Only redirect on browser/address-bar navigation (POP).
-    // Allow direct access to '/', '/login', '/signup'.
-    if (loading) return;
-    if (isAuthenticated) return;
-    if (navigationType !== "POP") return;
-
-    const allowed = ["/", "/login", "/signup"];
-    if (!allowed.includes(location.pathname)) {
-      navigate("/login", { replace: true });
-    }
-  }, [loading, isAuthenticated, navigationType, location.pathname, navigate]);
-
   return (
     <Routes>
       <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
@@ -273,7 +258,7 @@ export default function App() {
       <Route path="/merge-settings" element={isAuthenticated ? <MergeSettingsPage namesCount={projectData.names.length} pageCount={enabledPagesCount} onNext={handleMergeSettings} /> : <Navigate to="/login" replace />} />
       <Route path="/payment" element={isAuthenticated ? <PaymentPage namesCount={projectData.names.length} onNext={handlePayment} /> : <Navigate to="/login" replace />} />
       <Route path="/processing" element={<ProcessingPage namesCount={projectData.names.length} />} />
-      <Route path="*" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/" replace />} />
+      <Route path="*" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
     </Routes>
   );
 }
