@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate, useLocation, useNavigationType } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import { SignupPage } from "@/app/components/Signuppage";
 import { LandingPage } from "@/app/components/LandingPage";
@@ -54,6 +54,7 @@ interface ProjectData {
 export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
+  const navigationType = useNavigationType();
   const { isAuthenticated, user, login, logout, loading } = useAuth();
   const [projectData, setProjectData] = useState<ProjectData>({
     names: [],
@@ -73,14 +74,6 @@ export default function App() {
     if (step) return step;
     return localStorage.getItem('resetEmail') ? 'otp-sent' : 'none';
   });
-
-  // Restrict direct URL access to only /, /login, /signup
-  useEffect(() => {
-    const allowedRoutes = ['/', '/login', '/signup'];
-    if (!allowedRoutes.includes(location.pathname)) {
-      navigate('/', { replace: true });
-    }
-  }, [location.pathname, navigate]);
 
 
 
@@ -134,7 +127,6 @@ export default function App() {
 
       if (response.ok) {
         sessionStorage.removeItem('otpVerified');
-        sessionStorage.setItem('otpFlowStarted', 'true');
         // Store email in localStorage for OTP verification
         localStorage.setItem('resetEmail', email);
         setResetEmail(email);
@@ -228,6 +220,19 @@ export default function App() {
     return <div>Loading...</div>; // Or a proper loading component
   }
 
+  useEffect(() => {
+    // Only redirect on browser/address-bar navigation (POP).
+    // Allow direct access to '/', '/login', '/signup'.
+    if (loading) return;
+    if (isAuthenticated) return;
+    if (navigationType !== "POP") return;
+
+    const allowed = ["/", "/login", "/signup"];
+    if (!allowed.includes(location.pathname)) {
+      navigate("/login", { replace: true });
+    }
+  }, [loading, isAuthenticated, navigationType, location.pathname, navigate]);
+
   return (
     <Routes>
       <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
@@ -239,7 +244,7 @@ export default function App() {
         element={
           isAuthenticated ? (
             <Navigate to="/dashboard" replace />
-          ) : sessionStorage.getItem('otpFlowStarted') === 'true' && resetFlowStep === 'otp-sent' ? (
+          ) : resetFlowStep === 'otp-sent' ? (
             <VerifyOTPPage onNext={handleVerifyOTP} onBack={() => navigate("/forget-password")} />
           ) : resetFlowStep === 'otp-verified' ? (
             <Navigate to="/reset-password" replace />
