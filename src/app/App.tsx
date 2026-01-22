@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import { SignupPage } from "@/app/components/Signuppage";
 import { LandingPage } from "@/app/components/LandingPage";
@@ -53,6 +53,7 @@ interface ProjectData {
 
 export default function App() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, user, login, logout, loading } = useAuth();
   const [projectData, setProjectData] = useState<ProjectData>({
     names: [],
@@ -72,6 +73,18 @@ export default function App() {
     if (step) return step;
     return localStorage.getItem('resetEmail') ? 'otp-sent' : 'none';
   });
+
+  useEffect(() => {
+    const flowPaths = ['/forget-password', '/verify-otp', '/reset-password'];
+    if (!flowPaths.includes(location.pathname)) {
+      localStorage.removeItem('resetEmail');
+      localStorage.removeItem('resetFlowStep');
+      localStorage.removeItem('otpExpireAt');
+      sessionStorage.removeItem('otpVerified');
+      setResetEmail(null);
+      setResetFlowStep('none');
+    }
+  }, [location.pathname]);
 
 
 
