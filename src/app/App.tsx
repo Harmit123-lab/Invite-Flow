@@ -213,6 +213,7 @@ export default function App() {
         localStorage.removeItem('resetFlowStep');
         localStorage.removeItem('otpExpireAt');
         setResetEmail(null);
+        setResetFlowStep('none');
         navigate("/login", { replace: true });
       } else {
         alert(data.error || data.message);
@@ -242,9 +243,9 @@ export default function App() {
         element={
           isAuthenticated ? (
             <Navigate to="/dashboard" replace />
-          ) : resetFlowStep === 'otp-sent' ? (
+          ) : localStorage.getItem('resetFlowStep') === 'otp-sent' ? (
             <VerifyOTPPage onNext={handleVerifyOTP} onBack={() => navigate("/forget-password")} />
-          ) : resetFlowStep === 'otp-verified' ? (
+          ) : localStorage.getItem('resetFlowStep') === 'otp-verified' ? (
             <Navigate to="/reset-password" replace />
           ) : (
             <Navigate to="/forget-password" replace />
