@@ -200,7 +200,7 @@ export function SignupPage() {
               <div className="space-y-2">
                 <Label htmlFor="otp">OTP</Label>
                 <InputOTP
-                  maxLength={4}
+                  maxLength={6}
                   value={otp}
                   onChange={(value) => setOtp(value)}
                 >
@@ -209,6 +209,8 @@ export function SignupPage() {
                     <InputOTPSlot index={1} />
                     <InputOTPSlot index={2} />
                     <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
                   </InputOTPGroup>
                 </InputOTP>
               </div>
