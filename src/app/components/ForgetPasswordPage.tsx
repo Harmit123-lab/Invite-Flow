@@ -21,7 +21,7 @@ export function ForgetPasswordPage({ onNext, onBack }: ForgetPasswordPageProps) 
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -37,11 +37,32 @@ export function ForgetPasswordPage({ onNext, onBack }: ForgetPasswordPageProps) 
 
     setIsLoading(true);
 
-    // Simulate delay for sending verification code
-    setTimeout(() => {
-      onNext(email);
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/auth/send-otp",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        onNext(email);
+      } else {
+        setError(data.error || data.message);
+      }
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
       setIsLoading(false);
-    }, 1000); // 1 second delay
+    }
   };
 
   return (
