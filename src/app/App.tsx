@@ -249,6 +249,11 @@ export default function App() {
             <VerifyOTPPage onNext={handleVerifyOTP} onBack={() => navigate("/forget-password")} />
           ) : localStorage.getItem('resetFlowStep') === 'otp-verified' ? (
             <Navigate to="/reset-password" replace />
+          ) : (
+            <Navigate to="/forget-password" replace />
+          )
+        }
+      />
       <Route
         path="/reset-password"
         element={
