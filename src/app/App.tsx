@@ -261,7 +261,7 @@ export default function App() {
             <Navigate to="/dashboard" replace />
           ) : localStorage.getItem('resetFlowStep') === 'otp-verified' &&
             Boolean(localStorage.getItem('resetEmail')) ? (
-            <ResetPasswordPage onNext={handleResetPassword} onBack={() => navigate("/verify-otp")} />
+            <ResetPasswordPage onNext={handleResetPassword} onBack={() => navigate(-1)} />
           ) : (
             <Navigate to="/login" replace />
           )
