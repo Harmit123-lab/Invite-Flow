@@ -1,0 +1,264 @@
+import { useState, useEffect } from "react";
+import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
+import { useAuth } from "./contexts/AuthContext";
+import { SignupPage } from "@/app/components/Signuppage";
+import { LandingPage } from "@/app/components/LandingPage";
+import { LoginPage } from "@/app/components/LoginPage";
+import { ForgetPasswordPage } from "@/app/components/ForgetPasswordPage";
+import { VerifyOTPPage } from "@/app/components/VerifyOTPPage";
+import { ResetPasswordPage } from "@/app/components/ResetPasswordPage";
+import { DashboardPage } from "@/app/components/DashboardPage";
+import { UploadExcelPage } from "@/app/components/UploadExcelPage";
+import { UploadTemplatePage } from "@/app/components/UploadTemplatePage";
+import {
+  NamePlacementEditor,
+  PageConfig,
+} from "@/app/components/NamePlacementEditor";
+import {
+  MergeSettingsPage,
+  MergeSettings,
+} from "@/app/components/MergeSettingsPage";
+import { PaymentPage } from "@/app/components/PaymentPage";
+import { ProcessingPage } from "@/app/components/ProcessingPage";
+import apiCall from "@/app/utils/api";
+
+/* ---------------- PAGE TYPE ---------------- */
+
+type Page =
+  | "landing"
+  | "login"
+  | "signup"
+  | "forget-password"
+  | "verify-otp"
+  | "reset-password"
+  | "dashboard"
+  | "upload-excel"
+  | "upload-template"
+  | "name-placement"
+  | "merge-settings"
+  | "payment"
+  | "processing";
+
+/* ---------------- DATA TYPE ---------------- */
+
+interface ProjectData {
+  names: string[];
+  pdfPages: string[];
+  pageConfigs?: PageConfig[];
+  mergeSettings?: MergeSettings;
+  selectedPlan?: string;
+}
+
+/* ---------------- APP ---------------- */
+
+export default function App() {
+  const navigate = useNavigate();
+  const { isAuthenticated, user, login, logout, loading } = useAuth();
+  const [projectData, setProjectData] = useState<ProjectData>({
+    names: [],
+    pdfPages: [],
+  });
+  const [resetEmail, setResetEmail] = useState<string | null>(() => {
+    return localStorage.getItem('resetEmail');
+  });
+  const [resetFlowStep, setResetFlowStep] = useState<
+    'none' | 'otp-sent' | 'otp-verified'
+  >(() => {
+    const step = localStorage.getItem('resetFlowStep') as
+      | 'none'
+      | 'otp-sent'
+      | 'otp-verified'
+      | null;
+    if (step) return step;
+    return localStorage.getItem('resetEmail') ? 'otp-sent' : 'none';
+  });
+
+
+
+  /* -------- FLOW HANDLERS -------- */
+
+  const handleCreateNew = () => {
+    setProjectData({ names: [], pdfPages: [] });
+    navigate("/upload-excel");
+  };
+
+  const handleExcelUpload = (names: string[]) => {
+    setProjectData((prev) => ({ ...prev, names }));
+  };
+
+  const handlePdfUpload = (pdfPages: string[]) => {
+    setProjectData((prev) => ({ ...prev, pdfPages }));
+  };
+
+  const handleNamePlacement = (pageConfigs: PageConfig[]) => {
+    setProjectData((prev) => ({ ...prev, pageConfigs }));
+  };
+
+  const handleMergeSettings = (mergeSettings: MergeSettings) => {
+    setProjectData((prev) => ({ ...prev, mergeSettings }));
+  };
+
+  const handlePayment = (selectedPlan: string) => {
+    setProjectData((prev) => ({ ...prev, selectedPlan }));
+  };
+
+  const handleLogin = (token: string, user: { id: string; email: string }) => {
+    login(token, user);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/", { replace: true });
+  };
+
+  const handleForgetPassword = async (email: string) => {
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/forgot-password/send-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        sessionStorage.removeItem('otpVerified');
+        // Store email in localStorage for OTP verification
+        localStorage.setItem('resetEmail', email);
+        setResetEmail(email);
+        localStorage.setItem('resetFlowStep', 'otp-sent');
+        // store OTP expiry timestamp (2 minutes from now) so timer survives refresh
+        localStorage.setItem('otpExpireAt', String(Date.now() + 120000));
+        setResetFlowStep('otp-sent');
+        navigate("/verify-otp", { replace: true });
+      } else {
+        alert(data.error || data.message);
+      }
+    } catch (error) {
+      alert("Network error. Please try again.");
+    }
+  };
+
+  const handleVerifyOTP = async (otp: string) => {
+    const email = resetEmail || localStorage.getItem('resetEmail');
+    if (!email) {
+      alert("Email not found. Please try again.");
+      navigate("/forget-password", { replace: true });
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/forgot-password/verify-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, otp }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem('resetFlowStep', 'otp-verified');
+        setResetFlowStep('otp-verified');
+        sessionStorage.setItem('otpVerified', 'true');
+        // also pass email in navigation state as a fallback
+        navigate("/reset-password", { replace: true, state: { from: 'verify-otp', email } });
+      } else {
+        alert(data.error || data.message);
+      }
+    } catch (error) {
+      alert("Network error. Please try again.");
+    }
+  };
+
+  const handleResetPassword = async (password: string) => {
+    const email = resetEmail || localStorage.getItem('resetEmail');
+    if (!email) {
+      alert("Email not found. Please try again.");
+      navigate("/forget-password", { replace: true });
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/forgot-password/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, newPassword: password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Password reset successfully! Please login with your new password.");
+        sessionStorage.removeItem('otpVerified');
+        localStorage.removeItem('resetEmail');
+        localStorage.removeItem('resetFlowStep');
+        localStorage.removeItem('otpExpireAt');
+        setResetEmail(null);
+        navigate("/login", { replace: true });
+      } else {
+        alert(data.error || data.message);
+      }
+    } catch (error) {
+      alert("Network error. Please try again.");
+    }
+  };
+
+  const enabledPagesCount =
+    projectData.pageConfigs?.filter((c) => c.enabled).length || 0;
+
+  /* ---------------- RENDER ---------------- */
+
+  if (loading) {
+    return <div>Loading...</div>; // Or a proper loading component
+  }
+
+  return (
+    <Routes>
+      <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
+      <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage onLogin={handleLogin} />} />
+      <Route path="/signup" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <SignupPage />} />
+      <Route path="/forget-password" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <ForgetPasswordPage onNext={handleForgetPassword} onBack={() => navigate("/login")} />} />
+      <Route
+        path="/verify-otp"
+        element={
+          isAuthenticated ? (
+            <Navigate to="/dashboard" replace />
+          ) : resetFlowStep === 'otp-sent' ? (
+            <VerifyOTPPage onNext={handleVerifyOTP} onBack={() => navigate("/forget-password")} />
+          ) : resetFlowStep === 'otp-verified' ? (
+            <Navigate to="/reset-password" replace />
+          ) : (
+            <Navigate to="/forget-password" replace />
+          )
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          isAuthenticated ? (
+            <Navigate to="/dashboard" replace />
+          ) : localStorage.getItem('resetFlowStep') === 'otp-verified' &&
+            Boolean(localStorage.getItem('resetEmail')) ? (
+            <ResetPasswordPage onNext={handleResetPassword} onBack={() => navigate("/verify-otp")} />
+          ) : (
+            <Navigate to="/forget-password" replace />
+          )
+        }
+      />
+      <Route path="/dashboard" element={isAuthenticated ? <DashboardPage onCreateNew={handleCreateNew} onLogout={handleLogout} userEmail={user?.email || ''} userId={user?.id || ''} /> : <Navigate to="/login" replace />} />
+      <Route path="/upload-excel" element={isAuthenticated ? <UploadExcelPage onNext={handleExcelUpload} /> : <Navigate to="/login" replace />} />
+      <Route path="/upload-template" element={isAuthenticated ? <UploadTemplatePage onNext={handlePdfUpload} /> : <Navigate to="/login" replace />} />
+      <Route path="/name-placement" element={isAuthenticated ? (projectData.pdfPages.length > 0 ? <NamePlacementEditor pdfPages={projectData.pdfPages} onNext={handleNamePlacement} /> : null) : <Navigate to="/login" replace />} />
+      <Route path="/merge-settings" element={isAuthenticated ? <MergeSettingsPage namesCount={projectData.names.length} pageCount={enabledPagesCount} onNext={handleMergeSettings} /> : <Navigate to="/login" replace />} />
+      <Route path="/payment" element={isAuthenticated ? <PaymentPage namesCount={projectData.names.length} onNext={handlePayment} /> : <Navigate to="/login" replace />} />
+      <Route path="/processing" element={<ProcessingPage namesCount={projectData.names.length} />} />
+      <Route path="*" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/" replace />} />
+    </Routes>
+  );
+}
