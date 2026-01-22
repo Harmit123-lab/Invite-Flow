@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { Routes, Route, useNavigate, Navigate, useLocation, useNavigationType } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import { SignupPage } from "@/app/components/Signuppage";
 import { LandingPage } from "@/app/components/LandingPage";
@@ -54,8 +54,6 @@ interface ProjectData {
 export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
-  const navigationType = useNavigationType();
-  const initialNavHandled = useRef(false);
   const { isAuthenticated, user, login, logout, loading } = useAuth();
   const [projectData, setProjectData] = useState<ProjectData>({
     names: [],
@@ -75,6 +73,14 @@ export default function App() {
     if (step) return step;
     return localStorage.getItem('resetEmail') ? 'otp-sent' : 'none';
   });
+
+  // Restrict direct URL access to only /, /login, /signup
+  useEffect(() => {
+    const allowedRoutes = ['/', '/login', '/signup'];
+    if (!allowedRoutes.includes(location.pathname)) {
+      navigate('/', { replace: true });
+    }
+  }, [location.pathname, navigate]);
 
 
 
@@ -221,16 +227,6 @@ export default function App() {
   if (loading) {
     return <div>Loading...</div>; // Or a proper loading component
   }
-
-  useEffect(() => {
-    if (initialNavHandled.current) return;
-    initialNavHandled.current = true;
-    const allowed = ["/", "/login", "/signup"];
-    if (navigationType === "POP" && !allowed.includes(location.pathname)) {
-      navigate("/login", { replace: true });
-    }
-    // run only once on initial navigation
-  }, [navigationType, location.pathname, navigate]);
 
   return (
     <Routes>
