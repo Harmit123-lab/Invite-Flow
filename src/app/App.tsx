@@ -214,7 +214,7 @@ export default function App() {
         localStorage.removeItem('otpExpireAt');
         setResetEmail(null);
         setResetFlowStep('none');
-        navigate("/login", { replace: true });
+        window.location.replace('/login');
       } else {
         alert(data.error || data.message);
       }

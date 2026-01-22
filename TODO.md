@@ -2,4 +2,6 @@
 - [x] Read relevant files: App.tsx, ResetPasswordPage.tsx, ForgetPasswordPage.tsx, VerifyOTPPage.tsx.
 - [x] Create a plan to modify route guards in App.tsx to redirect invalid accesses to /login instead of /forget-password.
 - [x] Edit App.tsx to change redirects in /verify-otp and /reset-password route guards.
+- [x] Identify that multiple back navigations occur due to history stack not being cleared.
+- [x] Change handleResetPassword to use window.location.replace('/login') to clear history stack.
 - [x] Verify the changes are minimal and only affect reset-flow handling.
